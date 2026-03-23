@@ -1,0 +1,83 @@
+<div class="filter-panel">
+  <h3 class="panel-title">Filters</h3>
+
+  <div class="filter-grid">
+    <!-- Date range -->
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" [(ngModel)]="filter.from" />
+    </div>
+    <div class="filter-group">
+      <label>To</label>
+      <input type="date" [(ngModel)]="filter.to" />
+    </div>
+
+    <!-- Category -->
+    <div class="filter-group">
+      <label>Category</label>
+      <select [(ngModel)]="filter.category">
+        <option value="">All Categories</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Sentiment -->
+    <div class="filter-group">
+      <label>Sentiment</label>
+      <select [(ngModel)]="filter.sentiment">
+        <option value="">All Sentiments</option>
+        @for (s of sentiments; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Rating range -->
+    <div class="filter-group">
+      <label>Min Rating</label>
+      <select [(ngModel)]="filter.minRating">
+        <option value="">Any</option>
+        @for (r of [1,2,3,4,5]; track r) {
+          <option [value]="r">{{ r }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Max Rating</label>
+      <select [(ngModel)]="filter.maxRating">
+        <option value="">Any</option>
+        @for (r of [1,2,3,4,5]; track r) {
+          <option [value]="r">{{ r }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Region -->
+    <div class="filter-group">
+      <label>Region</label>
+      <select [(ngModel)]="filter.region">
+        <option value="">All Regions</option>
+        @for (reg of regions; track reg) {
+          <option [value]="reg">{{ reg }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Resolved -->
+    <div class="filter-group">
+      <label>Status</label>
+      <select [(ngModel)]="filter.isResolved">
+        <option value="">All</option>
+        <option [value]="true">Resolved</option>
+        <option [value]="false">Unresolved</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="filter-actions">
+    <button class="btn-primary" (click)="apply()">Apply</button>
+    <button class="btn-secondary" (click)="reset()">Reset</button>
+  </div>
+</div>

@@ -1,0 +1,10 @@
+<div class="chart-card">
+  <h3>Feedback by Category</h3>
+  <div class="chart-container">
+    @if (summary && summary.totalCount > 0) {
+      <canvas baseChart [data]="chartData" [options]="chartOptions" type="bar"></canvas>
+    } @else {
+      <div class="no-data">No data available.</div>
+    }
+  </div>
+</div>

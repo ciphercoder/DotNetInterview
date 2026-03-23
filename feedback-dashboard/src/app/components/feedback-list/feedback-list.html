@@ -1,0 +1,71 @@
+<div class="list-card">
+  <div class="list-header">
+    <h3>Feedback Entries</h3>
+    @if (result) {
+      <span class="list-count">{{ result.totalCount | number }} total</span>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading…</div>
+  } @else if (result && result.data.length > 0) {
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Category</th>
+            <th>Rating</th>
+            <th>Sentiment</th>
+            <th>Comment</th>
+            <th>Region</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of result.data; track item.id) {
+            <tr>
+              <td>{{ item.customerName }}</td>
+              <td><span class="badge">{{ item.category }}</span></td>
+              <td class="stars">{{ stars(item.rating) }}</td>
+              <td>
+                <span class="sentiment" [class]="sentimentClass(item.sentiment)">
+                  {{ item.sentiment }}
+                </span>
+              </td>
+              <td class="comment">{{ item.comment }}</td>
+              <td>{{ item.region ?? '—' }}</td>
+              <td>{{ item.createdAt | date:'mediumDate' }}</td>
+              <td>
+                <button
+                  class="resolve-btn"
+                  [class.resolved]="item.isResolved"
+                  (click)="resolveToggle.emit(item)">
+                  {{ item.isResolved ? 'Resolved' : 'Open' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (result.totalPages > 1) {
+      <div class="pagination">
+        @for (p of pages; track p) {
+          <button
+            [class.active]="p === result.page"
+            (click)="pageChange.emit(p)">
+            {{ p }}
+          </button>
+        }
+      </div>
+    }
+
+  } @else {
+    <div class="empty">No feedback matches the current filters.</div>
+  }
+</div>

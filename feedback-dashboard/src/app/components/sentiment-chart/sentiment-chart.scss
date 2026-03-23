@@ -1,0 +1,27 @@
+.chart-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--text);
+  }
+}
+
+.chart-container {
+  position: relative;
+  height: 240px;
+}
+
+.no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  font-size: .9rem;
+}

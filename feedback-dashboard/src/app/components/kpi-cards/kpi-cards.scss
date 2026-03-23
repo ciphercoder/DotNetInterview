@@ -1,0 +1,60 @@
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.kpi-label {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+
+  &.accent   { color: var(--primary); }
+  &.positive { color: #22c55e; }
+  &.neutral  { color: #f59e0b; }
+  &.negative { color: #ef4444; }
+}
+
+.kpi-sub {
+  font-size: .75rem;
+  color: var(--text-secondary);
+}
+
+// Skeleton loading
+.kpi-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.skeleton-card {
+  height: 100px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

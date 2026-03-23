@@ -1,0 +1,38 @@
+/* Global design tokens & reset */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --bg:             #f1f5f9;
+  --surface:        #ffffff;
+  --border:         #e2e8f0;
+  --primary:        #6366f1;
+  --text:           #0f172a;
+  --text-secondary: #64748b;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+a { color: var(--primary); text-decoration: none; }
+
+button { font-family: inherit; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
