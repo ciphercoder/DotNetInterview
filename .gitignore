@@ -48,3 +48,23 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Project-specific ignores
+# FeedbackAPI (C#)
+/FeedbackAPI/bin/
+/FeedbackAPI/obj/
+/FeedbackAPI/*.user
+/FeedbackAPI/*.suo
+/FeedbackAPI/*.userprefs
+/FeedbackAPI/Properties/launchSettings.json
+
+# Angular dashboard (Node)
+/feedback-dashboard/node_modules/
+/feedback-dashboard/dist/
+/feedback-dashboard/build/
+/feedback-dashboard/.angular/
+/feedback-dashboard/.env
+/feedback-dashboard/.env.local
+/feedback-dashboard/npm-debug.log*
+/feedback-dashboard/yarn-debug.log*
+/feedback-dashboard/yarn-error.log*
