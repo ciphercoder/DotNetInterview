@@ -5,8 +5,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FeedbackAPI.Services;
 
-public class FeedbackService(FeedbackDbContext db) : IFeedbackService
+/// <summary>
+/// Orchestrates four data stores in one service:
+///   SQL (EF Core)   – primary source of truth, CRUD
+///   Redis           – dashboard cache (summary + trends)   [read-heavy]
+///   MongoDB         – immutable audit log of every change  [write-heavy append]
+///   Elasticsearch   – full-text search index               [separate read path]
+///
+/// Failure policy: Redis / MongoDB / ES failures are caught and logged.
+/// They NEVER propagate to the caller – the SQL operation always wins.
+/// </summary>
+public class FeedbackService(
+    FeedbackDbContext db,
+    ICacheService     cache,
+    IAuditService     audit,
+    ISearchService    search) : IFeedbackService
 {
+    // ── Cache key helpers ────────────────────────────────────────────────────
+    // Keys are deterministic: same filter params → same key every time.
+
+    private static string SummaryCacheKey(FeedbackFilterParams f) =>
+        $"feedback:summary:{f.Category}:{f.Sentiment}:{f.MinRating}:{f.MaxRating}" +
+        $":{f.From:yyyyMMdd}:{f.To:yyyyMMdd}:{f.Region}:{f.ProductId}:{f.IsResolved}";
+
+    private static string TrendsCacheKey(DateTime from, DateTime to, string groupBy) =>
+        $"feedback:trends:{from:yyyyMMdd}:{to:yyyyMMdd}:{groupBy}";
+
     // ── Helpers ─────────────────────────────────────────────────────────────
 
     private static SentimentType InferSentiment(int rating) => rating switch
@@ -96,15 +120,29 @@ public class FeedbackService(FeedbackDbContext db) : IFeedbackService
             CreatedAt     = DateTime.UtcNow
         };
 
+        // ① SQL – primary write (must succeed)
         db.Feedbacks.Add(entity);
         await db.SaveChangesAsync();
-        return ToDto(entity);
+
+        var result = ToDto(entity);
+
+        // ② Fan-out to secondary stores in parallel (failures are swallowed internally)
+        await Task.WhenAll(
+            search.IndexAsync(result),                              // ES: index for full-text search
+            audit.LogCreatedAsync(entity.Id, result),              // MongoDB: audit trail
+            cache.RemoveAsync(SummaryCacheKey(new()))              // Redis: bust the no-filter summary
+        );
+
+        return result;
     }
 
     public async Task<FeedbackResponseDto?> UpdateAsync(int id, FeedbackUpdateDto dto)
     {
         var entity = await db.Feedbacks.FindAsync(id);
         if (entity is null) return null;
+
+        // Capture BEFORE state for MongoDB audit trail
+        var before = ToDto(entity);
 
         if (dto.Category.HasValue)  entity.Category   = dto.Category.Value;
         if (dto.IsResolved.HasValue) entity.IsResolved = dto.IsResolved.Value;
@@ -116,8 +154,19 @@ public class FeedbackService(FeedbackDbContext db) : IFeedbackService
             entity.Sentiment = InferSentiment(entity.Rating);
         }
 
+        // ① SQL – primary write
         await db.SaveChangesAsync();
-        return ToDto(entity);
+
+        var after = ToDto(entity);
+
+        // ② Fan-out: re-index in ES, record in MongoDB, bust cache
+        await Task.WhenAll(
+            search.IndexAsync(after),
+            audit.LogUpdatedAsync(entity.Id, before, after),
+            cache.RemoveAsync(SummaryCacheKey(new()))
+        );
+
+        return after;
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -125,14 +174,43 @@ public class FeedbackService(FeedbackDbContext db) : IFeedbackService
         var entity = await db.Feedbacks.FindAsync(id);
         if (entity is null) return false;
 
+        // Capture snapshot before deletion so audit log has the full record
+        var snapshot = ToDto(entity);
+
+        // ① SQL – primary delete
         db.Feedbacks.Remove(entity);
         await db.SaveChangesAsync();
+
+        // ② Fan-out: remove from ES, record in MongoDB, bust cache
+        await Task.WhenAll(
+            search.DeleteAsync(id),
+            audit.LogDeletedAsync(id, snapshot),
+            cache.RemoveAsync(SummaryCacheKey(new()))
+        );
+
         return true;
     }
 
     // ── Aggregations ─────────────────────────────────────────────────────────
 
     public async Task<FeedbackSummaryDto> GetSummaryAsync(FeedbackFilterParams filter)
+    {
+        var cacheKey = SummaryCacheKey(filter);
+
+        // ① Redis: try cache first (cache-aside pattern)
+        var cached = await cache.GetAsync<FeedbackSummaryDto>(cacheKey);
+        if (cached is not null) return cached;
+
+        // ② SQL: cache miss → compute from database
+        var result = await ComputeSummaryAsync(filter);
+
+        // ③ Redis: store result for 60 seconds
+        await cache.SetAsync(cacheKey, result, TimeSpan.FromSeconds(60));
+
+        return result;
+    }
+
+    private async Task<FeedbackSummaryDto> ComputeSummaryAsync(FeedbackFilterParams filter)
     {
         var query = ApplyFilters(db.Feedbacks.AsNoTracking(), filter);
         var all   = await query.ToListAsync();
@@ -159,6 +237,25 @@ public class FeedbackService(FeedbackDbContext db) : IFeedbackService
     }
 
     public async Task<IEnumerable<TrendDataPointDto>> GetTrendsAsync(
+        DateTime from, DateTime to, string groupBy)
+    {
+        var cacheKey = TrendsCacheKey(from, to, groupBy);
+
+        // ① Redis: try cache first
+        var cached = await cache.GetAsync<List<TrendDataPointDto>>(cacheKey);
+        if (cached is not null) return cached;
+
+        // ② SQL: cache miss → compute from database
+        var result = await ComputeTrendsAsync(from, to, groupBy);
+        var list   = result.ToList();
+
+        // ③ Redis: store for 5 minutes (trends are more expensive to compute)
+        await cache.SetAsync(cacheKey, list, TimeSpan.FromMinutes(5));
+
+        return list;
+    }
+
+    private async Task<IEnumerable<TrendDataPointDto>> ComputeTrendsAsync(
         DateTime from, DateTime to, string groupBy)
     {
         var data = await db.Feedbacks.AsNoTracking()

@@ -1,0 +1,16 @@
+<div class="search-bar">
+  <div class="search-input-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search feedback by keyword, customer, region…"
+      [(ngModel)]="query"
+      (ngModelChange)="onInput($event)"
+      autocomplete="off"
+    />
+    @if (query.length > 0) {
+      <button class="clear-btn" (click)="clear()" title="Clear search">&times;</button>
+    }
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="search-results">
+
+  @if (loading) {
+    <div class="sr-loading">Searching…</div>
+  } @else if (result && result.totalHits > 0) {
+
+    <div class="sr-meta">
+      <strong>{{ result.totalHits | number }}</strong> hit{{ result.totalHits === 1 ? '' : 's' }}
+      for <em>"{{ result.query }}"</em>
+    </div>
+
+    <ul class="hit-list">
+      @for (hit of result.hits; track hit.item.id) {
+        <li class="hit-card">
+          <div class="hit-header">
+            <span class="hit-name">{{ hit.item.customerName }}</span>
+            <span class="hit-badge">{{ hit.item.category }}</span>
+            <span class="hit-sentiment" [class]="sentimentClass(hit.item.sentiment)">
+              {{ hit.item.sentiment }}
+            </span>
+            <span class="hit-stars">{{ stars(hit.item.rating) }}</span>
+            <span class="hit-score" title="Relevance score">{{ hit.score | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="hit-comment">
+            @if (hit.highlight) {
+              <!-- innerHTML is safe here: backend wraps matched words in <mark> only -->
+              <span [innerHTML]="hit.highlight"></span>
+            } @else {
+              {{ hit.item.comment }}
+            }
+          </div>
+
+          <div class="hit-meta">
+            @if (hit.item.region) { <span>{{ hit.item.region }}</span> }
+            <span>{{ hit.item.createdAt | date:'mediumDate' }}</span>
+            @if (hit.item.isResolved) { <span class="resolved-badge">Resolved</span> }
+          </div>
+        </li>
+      }
+    </ul>
+
+    @if (pages.length > 1) {
+      <div class="sr-pages">
+        @for (p of pages; track p) {
+          <button
+            [class.active]="p === result.page"
+            (click)="pageChange.emit(p)">
+            {{ p }}
+          </button>
+        }
+      </div>
+    }
+
+  } @else if (result && result.totalHits === 0) {
+    <div class="sr-empty">No results for <em>"{{ result.query }}"</em>.</div>
+  }
+
+</div>

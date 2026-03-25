@@ -80,3 +80,31 @@ export interface FeedbackFilter {
   page?: number;
   pageSize?: number;
 }
+
+// ── Search (Elasticsearch) ────────────────────────────────────────────────
+
+export interface SearchHit {
+  item: FeedbackItem;
+  score: number;
+  highlight: string | null;
+}
+
+export interface SearchResultDto {
+  query: string;
+  totalHits: number;
+  page: number;
+  pageSize: number;
+  hits: SearchHit[];
+}
+
+// ── Audit (MongoDB) ───────────────────────────────────────────────────────
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  feedbackId: number;
+  timestamp: string;
+  changeSummary: string | null;
+  beforeJson: string | null;
+  afterJson: string | null;
+}

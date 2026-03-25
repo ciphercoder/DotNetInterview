@@ -19,6 +19,7 @@ export class FeedbackListComponent {
   @Input() loading = false;
   @Output() pageChange = new EventEmitter<number>();
   @Output() resolveToggle = new EventEmitter<FeedbackItem>();
+  @Output() viewAudit = new EventEmitter<FeedbackItem>();
 
   get pages(): number[] {
     if (!this.result) return [];

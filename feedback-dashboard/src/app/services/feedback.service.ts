@@ -9,12 +9,16 @@ import {
   FeedbackSummary,
   TrendDataPoint,
   PagedResult,
+  SearchResultDto,
+  AuditLogEntry,
 } from '../models/feedback.models';
 
 @Injectable({ providedIn: 'root' })
 export class FeedbackService {
   private readonly http = inject(HttpClient);
-  private readonly base = 'http://localhost:5000/api/feedback';
+  private readonly base       = 'http://localhost:5000/api/feedback';
+  private readonly searchBase = 'http://localhost:5000/api/search';
+  private readonly auditBase  = 'http://localhost:5000/api/audit';
 
   /** Build HttpParams from a FeedbackFilter object, omitting undefined values. */
   private toParams(filter: FeedbackFilter): HttpParams {
@@ -77,5 +81,26 @@ export class FeedbackService {
 
   getRegions(): Observable<string[]> {
     return this.http.get<string[]>(`${this.base}/regions`);
+  }
+
+  // ── Search (Elasticsearch) ───────────────────────────────────────────────
+
+  search(query: string, page = 1, pageSize = 20): Observable<SearchResultDto> {
+    const params = new HttpParams()
+      .set('q', query)
+      .set('page', page)
+      .set('pageSize', pageSize);
+    return this.http.get<SearchResultDto>(this.searchBase, { params });
+  }
+
+  // ── Audit (MongoDB) ──────────────────────────────────────────────────────
+
+  getAuditLog(feedbackId: number): Observable<AuditLogEntry[]> {
+    return this.http.get<AuditLogEntry[]>(`${this.auditBase}/feedback/${feedbackId}`);
+  }
+
+  getRecentAudit(limit = 50): Observable<AuditLogEntry[]> {
+    const params = new HttpParams().set('limit', limit);
+    return this.http.get<AuditLogEntry[]>(`${this.auditBase}/recent`, { params });
   }
 }

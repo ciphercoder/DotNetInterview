@@ -22,6 +22,7 @@
             <th>Region</th>
             <th>Date</th>
             <th>Status</th>
+            <th>Audit</th>
           </tr>
         </thead>
         <tbody>
@@ -44,6 +45,11 @@
                   [class.resolved]="item.isResolved"
                   (click)="resolveToggle.emit(item)">
                   {{ item.isResolved ? 'Resolved' : 'Open' }}
+                </button>
+              </td>
+              <td>
+                <button class="audit-btn" (click)="viewAudit.emit(item)" title="View audit history">
+                  History
                 </button>
               </td>
             </tr>

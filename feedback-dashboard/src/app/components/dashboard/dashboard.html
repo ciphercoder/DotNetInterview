@@ -1,50 +1,97 @@
 <div class="dashboard">
 
-  <!-- Header -->
+  <!-- Header + Tab bar -->
   <header class="dash-header">
     <div>
       <h1>Customer Feedback Dashboard</h1>
-      <p>Real-time aggregation &amp; trend analysis</p>
+      <p>Real-time aggregation &amp; trend analysis · Redis · MongoDB · Elasticsearch</p>
     </div>
+    <nav class="dash-tabs">
+      <button [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">Dashboard</button>
+      <button [class.active]="activeTab === 'search'"    (click)="setTab('search')">Search</button>
+    </nav>
   </header>
 
-  <!-- Filters -->
-  <section class="section">
-    <app-filter-panel
-      [initialFilter]="filter"
-      (filterChange)="onFilterChange($event)">
-    </app-filter-panel>
-  </section>
+  <!-- ═══ DASHBOARD TAB ════════════════════════════════════════════════════ -->
+  @if (activeTab === 'dashboard') {
 
-  <!-- KPI Cards -->
-  <section class="section">
-    <app-kpi-cards [summary]="summary"></app-kpi-cards>
-  </section>
+    <!-- Filters -->
+    <section class="section">
+      <app-filter-panel
+        [initialFilter]="filter"
+        (filterChange)="onFilterChange($event)">
+      </app-filter-panel>
+    </section>
 
-  <!-- Charts row -->
-  <section class="section charts-row">
-    <div class="chart-wide">
-      <app-trend-chart
-        [trendData]="trendData"
-        [(groupBy)]="trendGroupBy">
-      </app-trend-chart>
-    </div>
-    <div class="chart-narrow">
-      <app-sentiment-chart [summary]="summary"></app-sentiment-chart>
-    </div>
-    <div class="chart-narrow">
-      <app-category-chart [summary]="summary"></app-category-chart>
-    </div>
-  </section>
+    <!-- KPI Cards -->
+    <section class="section">
+      <app-kpi-cards [summary]="summary"></app-kpi-cards>
+    </section>
 
-  <!-- Feedback list -->
-  <section class="section">
-    <app-feedback-list
-      [result]="listResult"
-      [loading]="listLoading"
-      (pageChange)="onPageChange($event)"
-      (resolveToggle)="onResolveToggle($event)">
-    </app-feedback-list>
-  </section>
+    <!-- Charts row -->
+    <section class="section charts-row">
+      <div class="chart-wide">
+        <app-trend-chart
+          [trendData]="trendData"
+          [(groupBy)]="trendGroupBy">
+        </app-trend-chart>
+      </div>
+      <div class="chart-narrow">
+        <app-sentiment-chart [summary]="summary"></app-sentiment-chart>
+      </div>
+      <div class="chart-narrow">
+        <app-category-chart [summary]="summary"></app-category-chart>
+      </div>
+    </section>
+
+    <!-- Feedback list -->
+    <section class="section">
+      <app-feedback-list
+        [result]="listResult"
+        [loading]="listLoading"
+        (pageChange)="onPageChange($event)"
+        (resolveToggle)="onResolveToggle($event)"
+        (viewAudit)="onViewAudit($event)">
+      </app-feedback-list>
+    </section>
+
+    <!-- Audit panel (slide-in) -->
+    @if (showAuditPanel) {
+      <div class="audit-overlay" (click)="closeAuditPanel()"></div>
+      <aside class="audit-panel">
+        <div class="audit-panel-header">
+          <h3>
+            Audit trail
+            @if (selectedAuditItem) {
+              — #{{ selectedAuditItem.id }} {{ selectedAuditItem.customerName }}
+            }
+          </h3>
+          <button class="close-btn" (click)="closeAuditPanel()">&times;</button>
+        </div>
+        <app-audit-log [logs]="auditLogs" [loading]="auditLoading"></app-audit-log>
+      </aside>
+    }
+  }
+
+  <!-- ═══ SEARCH TAB ═══════════════════════════════════════════════════════ -->
+  @if (activeTab === 'search') {
+    <section class="section">
+      <div class="search-card">
+        <h3 class="search-card-title">Full-text search <span class="es-badge">Elasticsearch</span></h3>
+        <app-search-bar (searchQuery)="onSearch($event)"></app-search-bar>
+      </div>
+    </section>
+
+    @if (currentQuery || searchLoading) {
+      <section class="section">
+        <app-search-results
+          [result]="searchResult"
+          [loading]="searchLoading"
+          (pageChange)="onSearchPage($event)">
+        </app-search-results>
+      </section>
+    }
+  }
 
 </div>
+

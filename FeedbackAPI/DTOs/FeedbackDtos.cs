@@ -88,3 +88,43 @@ public class PagedResult<T>
     public int PageSize { get; set; }
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
 }
+
+// ── Elasticsearch DTOs ────────────────────────────────────────────────────────
+
+/// <summary>A single Elasticsearch hit: the feedback item + relevance score + highlighted fragment.</summary>
+public class SearchHit
+{
+    public FeedbackResponseDto Item { get; set; } = null!;
+    /// <summary>Relevance score from Elasticsearch (higher = more relevant).</summary>
+    public double Score { get; set; }
+    /// <summary>HTML fragment with the matching text wrapped in &lt;mark&gt; tags. Null when no highlight.</summary>
+    public string? Highlight { get; set; }
+}
+
+/// <summary>Full-text search result page returned by Elasticsearch.</summary>
+public class SearchResultDto
+{
+    public string Query { get; set; } = string.Empty;
+    public long TotalHits { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public IEnumerable<SearchHit> Hits { get; set; } = [];
+}
+
+// ── MongoDB DTOs ────────────────────────────────────────────────────────────
+
+/// <summary>An audit log entry read from MongoDB.</summary>
+public class AuditLogDto
+{
+    /// <summary>MongoDB ObjectId as string – time-encoded (first 8 hex chars = Unix timestamp).</summary>
+    public string Id { get; set; } = string.Empty;
+    /// <summary>"Create" | "Update" | "Delete"</summary>
+    public string Action { get; set; } = string.Empty;
+    public int FeedbackId { get; set; }
+    public DateTime Timestamp { get; set; }
+    public string? ChangeSummary { get; set; }
+    /// <summary>JSON snapshot of the record before the change (null for Create).</summary>
+    public string? BeforeJson { get; set; }
+    /// <summary>JSON snapshot of the record after the change (null for Delete).</summary>
+    public string? AfterJson { get; set; }
+}

@@ -1,0 +1,48 @@
+<div class="audit-log">
+
+  @if (loading) {
+    <div class="al-loading">Loading audit trail…</div>
+  } @else if (logs.length === 0) {
+    <div class="al-empty">No audit entries found.</div>
+  } @else {
+    <ul class="al-timeline">
+      @for (entry of logs; track entry.id) {
+        <li class="al-entry">
+          <div class="al-dot" [class]="actionClass(entry.action)"></div>
+          <div class="al-body">
+            <div class="al-header">
+              <span class="al-action" [class]="actionClass(entry.action)">{{ entry.action }}</span>
+              <span class="al-id">Feedback #{{ entry.feedbackId }}</span>
+              <span class="al-time">{{ entry.timestamp | date:'medium' }}</span>
+            </div>
+            @if (entry.changeSummary) {
+              <div class="al-summary">{{ entry.changeSummary }}</div>
+            }
+            @if (entry.beforeJson || entry.afterJson) {
+              <button class="al-expand-btn" (click)="toggle(entry.id)">
+                {{ expandedId === entry.id ? 'Hide details' : 'Show details' }}
+              </button>
+            }
+            @if (expandedId === entry.id) {
+              <div class="al-diff">
+                @if (entry.beforeJson) {
+                  <div class="al-diff-block before">
+                    <span class="diff-label">Before</span>
+                    <pre>{{ formatJson(entry.beforeJson) }}</pre>
+                  </div>
+                }
+                @if (entry.afterJson) {
+                  <div class="al-diff-block after">
+                    <span class="diff-label">After</span>
+                    <pre>{{ formatJson(entry.afterJson) }}</pre>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+</div>
