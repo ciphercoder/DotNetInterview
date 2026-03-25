@@ -1,0 +1,50 @@
+# Visual Studio / .NET
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+artifacts/
+publish/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+project.assets.json
+
+# NuGet
+**/packages/*
+
+# Rider / JetBrains
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Node / Angular
+node_modules/
+dist/
+build/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Misc build / test outputs
+coverage/
+TestResults/
+*.log
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local env files
+.env
+.env.local
+.env.*.local
